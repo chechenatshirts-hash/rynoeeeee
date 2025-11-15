@@ -1,202 +1,140 @@
 import flet as ft
-import random
-from datetime import datetime
-
-PRIMARY = "#ff4d4d"
-BG = "#0d0d0d"
-CARD = "#1a1a1a"
-TEXT_GRAY = "#bfbfbf"
-
-# =======================================
-#     TARJETAS DE ESTADÍSTICAS
-# =======================================
-
-def stat_card(icon, value, label):
-    return ft.Container(
-        bgcolor=CARD,
-        padding=15,
-        border_radius=20,
-        width=110,
-        height=120,
-        content=ft.Column(
-            alignment="center",
-            horizontal_alignment="center",
-            spacing=5,
-            controls=[
-                ft.Text(icon, size=28),
-                ft.Text(value, size=22, weight="bold", color="white"),
-                ft.Text(label, size=12, color=TEXT_GRAY)
-            ],
-        ),
-    )
-
-# =======================================
-#     PANTALLA PRINCIPAL (HOME)
-# =======================================
-
-def home_view(page, go_register, runs):
-    # Mini gráfica tipo barras
-    data = [random.randint(3, 10) for _ in range(7)]
-    chart = [
-        ft.Container(
-            width=20,
-            height=v * 10,
-            bgcolor=PRIMARY,
-            border_radius=8,
-            animate=ft.Animation(300, "easeOut"),
-        ) for v in data
-    ]
-
-    return ft.Column(
-        expand=True,
-        spacing=20,
-        controls=[
-            ft.Text("🏃 RYNO", size=32, weight="bold", color="white"),
-            ft.Text("Tu rendimiento general", size=15, color=TEXT_GRAY),
-
-            # Estadísticas principales
-            ft.Row(
-                alignment="spaceBetween",
-                controls=[
-                    stat_card("🔥", "345", "Calorías"),
-                    stat_card("⏱️", "5.12", "Ritmo/km"),
-                    stat_card("📏", "7.2", "Km hoy"),
-                ],
-            ),
-
-            ft.Text("Progreso semanal", size=18, weight="bold", color="white"),
-
-            ft.Container(
-                bgcolor=CARD,
-                padding=15,
-                border_radius=15,
-                height=180,
-                content=ft.Row(alignment="end", spacing=12, controls=chart),
-            ),
-        ]
-    )
-
-# =======================================
-#     REGISTRAR CARRERA
-# =======================================
-
-def register_view(page, go_back, runs):
-    dist = ft.TextField(label="Distancia (km)", width=200)
-    time = ft.TextField(label="Tiempo (min)", width=200)
-    notes = ft.TextField(label="Notas", width=300)
-
-    def save(e):
-        try:
-            d = float(dist.value)
-            t = float(time.value)
-        except:
-            page.snack_bar = ft.SnackBar(ft.Text("Datos inválidos"), open=True)
-            page.update()
-            return
-
-        runs.append({
-            "date": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "distance": d,
-            "time": t,
-            "notes": notes.value
-        })
-        go_back()
-
-    return ft.Column(
-        spacing=20,
-        controls=[
-            ft.Text("Registrar carrera", size=28, weight="bold", color="white"),
-            dist,
-            time,
-            notes,
-            ft.ElevatedButton("Guardar", bgcolor=PRIMARY, color="white", on_click=save),
-        ]
-    )
-
-# =======================================
-#     HISTORIAL
-# =======================================
-
-def history_view(page, runs):
-    if not runs:
-        return ft.Text("No hay carreras registradas aún.", color=TEXT_GRAY)
-
-    items = []
-    for r in reversed(runs):
-        items.append(
-            ft.Container(
-                bgcolor=CARD,
-                padding=15,
-                border_radius=15,
-                content=ft.Column(
-                    controls=[
-                        ft.Text(f"📅 {r['date']}", color="white"),
-                        ft.Text(f"{r['distance']} km en {r['time']} min", color=TEXT_GRAY),
-                        ft.Text(f"📝 {r['notes']}", color=TEXT_GRAY),
-                    ]
-                ),
-            )
-        )
-    return ft.Column(spacing=10, controls=items)
-
-# =======================================
-#     MAIN APP
-# =======================================
 
 def main(page: ft.Page):
-    page.title = "RYNO Running App"
-    page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = BG
-    page.padding = 15
 
-    runs = []
-    current_tab = ft.Tabs(
-        selected_index=0,
-        tab_alignment="center",
-        indicator_color=PRIMARY,
-        tabs=[
-            ft.Tab(text="Inicio"),
-            ft.Tab(text="Historial"),
-        ],
-    )
+    page.title = "RYNO - Running App"
+    page.theme_mode = "light"
+    page.padding = 0
+    page.spacing = 0
+    page.window_min_width = 350
 
-    # Contenido dinámico
-    body = ft.Container(expand=True)
+    # ------------ LOGIN SCREEN ------------
+    def go_dashboard(e):
+        page.views.append(dashboard_view())
+        page.go("/dashboard")
 
-    def update_content():
-        if current_tab.selected_index == 0:
-            body.content = home_view(page, open_register, runs)
-        else:
-            body.content = history_view(page, runs)
-        page.update()
+    def login_view():
+        return ft.View(
+            "/",
+            controls=[
+                ft.Container(
+                    width=page.width,
+                    height=page.height,
+                    gradient=ft.LinearGradient(
+                        begin=ft.alignment.top_center,
+                        end=ft.alignment.bottom_center,
+                        colors=["#000000", "#5200FF"],
+                    ),
+                    content=ft.Column(
+                        alignment="center",
+                        horizontal_alignment="center",
+                        spacing=25,
+                        controls=[
+                            ft.Text("BIENVENIDO A RYNO",
+                                    size=32,
+                                    weight="bold",
+                                    color="white"),
+                            
+                            ft.CircleAvatar(
+                                content=ft.Icon("person", size=50),
+                                radius=45,
+                                bgcolor="white",
+                            ),
 
-    def open_register(e):
-        page.views.append(
-            ft.View(
-                "/register",
-                bgcolor=BG,
-                controls=[
-                    register_view(page, go_back, runs)
-                ]
-            )
+                            ft.TextField(
+                                label="Nombre",
+                                width=280,
+                                border_radius=12,
+                            ),
+                            ft.TextField(
+                                label="Contraseña",
+                                password=True,
+                                can_reveal_password=True,
+                                width=280,
+                                border_radius=12,
+                            ),
+
+                            ft.ElevatedButton(
+                                text="Entrar",
+                                width=200,
+                                height=45,
+                                bgcolor="#ffffff",
+                                color="black",
+                                on_click=go_dashboard,
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=20)
+                                ),
+                            ),
+
+                            ft.Text(
+                                "Creado por Juan Manuel Reyes Alegría\n y Arturo Triano Izquierdo",
+                                size=12,
+                                color="white",
+                                text_align="center",
+                            )
+                        ]
+                    )
+                )
+            ]
         )
-        page.update()
 
-    def go_back():
-        page.views.pop()
-        update_content()
+    # ------------ DASHBOARD ------------
+    def dashboard_view():
+        return ft.View(
+            "/dashboard",
+            controls=[
+                ft.Column(
+                    spacing=10,
+                    expand=True,
+                    controls=[
+                        ft.Text("Inicio", size=26, weight="bold"),
 
-    current_tab.on_change = lambda e: update_content()
+                        ft.Container(
+                            padding=15,
+                            border_radius=20,
+                            bgcolor="#f5f5f5",
+                            content=ft.Column(
+                                spacing=5,
+                                controls=[
+                                    ft.Text("Tu progreso", size=20, weight="bold"),
+                                    ft.Text("Kilómetros esta semana: 12.4", size=16),
+                                ]
+                            )
+                        ),
 
-    update_content()
+                        ft.Container(
+                            padding=15,
+                            border_radius=20,
+                            bgcolor="#f5f5f5",
+                            content=ft.Column(
+                                spacing=5,
+                                controls=[
+                                    ft.Text("Último entrenamiento", size=20, weight="bold"),
+                                    ft.Text("5.3 km · 28 min", size=16),
+                                ]
+                            )
+                        ),
+                    ]
+                ),
 
-    # Botón flotante para registrar carrera
-    fab = ft.FloatingActionButton(
-        bgcolor=PRIMARY,
-        content=ft.Text("+", size=35, weight="bold", color="white"),
-        on_click=open_register,
-    )
+                ft.NavigationBar(
+                    destinations=[
+                        ft.NavigationDestination(icon="home", label="Home"),
+                        ft.NavigationDestination(icon="run_circle", label="Entrenar"),
+                        ft.NavigationDestination(icon="person", label="Perfil"),
+                    ]
+                )
+            ]
+        )
 
-    page.add(body, current_tab, fab)
+    # ------------ ROUTES ------------
+    page.views.append(login_view())
 
-ft.app(target=main)
+    def route_change(route):
+        pass
+
+    page.on_route_change = route_change
+    page.go("/")
+
+
+ft.app(target=main, view=ft.WEB_BROWSER)
