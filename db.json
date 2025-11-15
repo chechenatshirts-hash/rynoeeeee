@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "username": "demo",
+      "password": "1234",
+      "name": "Runner Demo",
+      "photo": "",
+      "km_total": 42,
+      "best_pace": "4:35"
+    }
+  ],
+  "runs": []
+}
