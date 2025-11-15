@@ -1,12 +1,42 @@
 import flet as ft
+import base64
 
 def main(page: ft.Page):
-
     page.title = "RYNO - Running App"
     page.theme_mode = "light"
     page.padding = 0
     page.spacing = 0
     page.window_min_width = 350
+
+    # ---- FILE PICKER ----
+    file_picker = ft.FilePicker()
+    page.overlay.append(file_picker)
+
+    # ---- FOTO DE PERFIL INICIAL (DEFAULT) ----
+    profile_image = ft.Image(
+        src="/assets/rhino.png",  # IMPORTANTE: usar /assets/
+        width=120,
+        height=120,
+        fit="cover",
+        border_radius=60,
+    )
+
+    # ---- CAMBIAR FOTO DE PERFIL ----
+    def change_profile_picture(e):
+        if not file_picker.result or not file_picker.result.files:
+            return
+        
+        file = file_picker.result.files[0]
+
+        # Convertir imagen a BASE64
+        with open(file.path, "rb") as img:
+            base64_str = base64.b64encode(img.read()).decode("utf-8")
+
+        # Establecer imagen base64 en el avatar
+        profile_image.src_base64 = base64_str
+        profile_image.update()
+
+    file_picker.on_result = change_profile_picture
 
     # ------------ LOGIN SCREEN ------------
     def go_dashboard(e):
@@ -21,30 +51,38 @@ def main(page: ft.Page):
                     width=page.width,
                     height=page.height,
                     gradient=ft.LinearGradient(
+                        colors=["#000000", "#5200FF"],
                         begin=ft.alignment.top_center,
                         end=ft.alignment.bottom_center,
-                        colors=["#000000", "#5200FF"],
                     ),
                     content=ft.Column(
                         alignment="center",
                         horizontal_alignment="center",
-                        spacing=25,
+                        spacing=20,
                         controls=[
                             ft.Text("BIENVENIDO A RYNO",
                                     size=32,
                                     weight="bold",
                                     color="white"),
-                            
-                            ft.CircleAvatar(
-                                content=ft.Icon("person", size=50),
-                                radius=45,
-                                bgcolor="white",
+
+                            ft.Container(
+                                content=profile_image,
+                                on_click=lambda _: file_picker.pick_files(
+                                    allow_multiple=False,
+                                    file_type=ft.FilePickerFileType.IMAGE,
+                                ),
+                                ink=True,
                             ),
+
+                            ft.Text("Foto de perfil", color="white"),
 
                             ft.TextField(
                                 label="Nombre",
+                                label_style=ft.TextStyle(color="white"),
                                 width=280,
                                 border_radius=12,
+                                cursor_color="white",
+                                color="white"
                             ),
                             ft.TextField(
                                 label="Contraseña",
@@ -52,6 +90,9 @@ def main(page: ft.Page):
                                 can_reveal_password=True,
                                 width=280,
                                 border_radius=12,
+                                label_style=ft.TextStyle(color="white"),
+                                cursor_color="white",
+                                color="white"
                             ),
 
                             ft.ElevatedButton(
@@ -61,9 +102,6 @@ def main(page: ft.Page):
                                 bgcolor="#ffffff",
                                 color="black",
                                 on_click=go_dashboard,
-                                style=ft.ButtonStyle(
-                                    shape=ft.RoundedRectangleBorder(radius=20)
-                                ),
                             ),
 
                             ft.Text(
@@ -71,11 +109,11 @@ def main(page: ft.Page):
                                 size=12,
                                 color="white",
                                 text_align="center",
-                            )
-                        ]
-                    )
+                            ),
+                        ],
+                    ),
                 )
-            ]
+            ],
         )
 
     # ------------ DASHBOARD ------------
@@ -88,33 +126,18 @@ def main(page: ft.Page):
                     expand=True,
                     controls=[
                         ft.Text("Inicio", size=26, weight="bold"),
-
                         ft.Container(
                             padding=15,
                             border_radius=20,
                             bgcolor="#f5f5f5",
                             content=ft.Column(
-                                spacing=5,
                                 controls=[
                                     ft.Text("Tu progreso", size=20, weight="bold"),
-                                    ft.Text("Kilómetros esta semana: 12.4", size=16),
+                                    ft.Text("Kilómetros esta semana: 12.4"),
                                 ]
-                            )
+                            ),
                         ),
-
-                        ft.Container(
-                            padding=15,
-                            border_radius=20,
-                            bgcolor="#f5f5f5",
-                            content=ft.Column(
-                                spacing=5,
-                                controls=[
-                                    ft.Text("Último entrenamiento", size=20, weight="bold"),
-                                    ft.Text("5.3 km · 28 min", size=16),
-                                ]
-                            )
-                        ),
-                    ]
+                    ],
                 ),
 
                 ft.NavigationBar(
@@ -123,18 +146,15 @@ def main(page: ft.Page):
                         ft.NavigationDestination(icon="run_circle", label="Entrenar"),
                         ft.NavigationDestination(icon="person", label="Perfil"),
                     ]
-                )
-            ]
+                ),
+            ],
         )
 
-    # ------------ ROUTES ------------
     page.views.append(login_view())
-
-    def route_change(route):
-        pass
-
-    page.on_route_change = route_change
     page.go("/")
+
+ft.app(target=main, assets_dir="assets", view=ft.WEB_BROWSER)
+
 
 
 ft.app(target=main, view=ft.WEB_BROWSER)
